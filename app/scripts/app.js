@@ -14,7 +14,7 @@ app.service("bitport", ["$http", "$q"], function($http, $q) {
             var defer = $q.defer();
             $http.get(base).success(function(response) {
                 var menu = $(response).find("#main-menu");
-                defer.resolve(menu.length > 0);
+                defer.resolve(menu.length <= 0);
             });
             return defer.promise
         }

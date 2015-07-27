@@ -11,6 +11,7 @@
   "devDependencies": {
     "async": "^1.4.0",
     "cheerio": "^0.19.0",
-    "request": "^2.60.0"
+    "request": "^2.60.0",
+    "tough-cookie": "^2.0.0"
   }
 }

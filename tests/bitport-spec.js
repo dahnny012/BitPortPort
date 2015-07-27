@@ -5,16 +5,16 @@ var async = require("async");
 
 function extractCookie(headers) {
 	var raw = headers["set-cookie"][0];
-	var regex = /[A-Z]+=[a-zA-Z0-9]+/;
+	var regex = /[A-Z]+=[a-zA-Z0-9]+;/;
 	var cookie = raw.match(regex)[0];
 	return cookie;
 }
 
 function getHomePage(cb){
-	getPage(cb,"https://bitport.io");
+	getPage("https://bitport.io",cb);
 }
 
-function getPage(cb,url){
+function getPage(url,cb){
 	var config = {url:url,
 			success:function(err,httpRes,res){
 				var $ = cheerio.load(res);
@@ -35,26 +35,30 @@ function assert(cond, msg) {
 
 function main() {
 	function AbleToSignIn(cb) {
-		var config = {
+		getPage("https://bitport.io/login",function($){
+			var token = $("#frm-signInForm-_token_").val()
+			var config = {
 			url: "https://bitport.io/login?do=signInForm-submit",
 			data: {
 				email: "dahnny012@sharklasers.com",
-				password: "password123"
+				password: "password123",
+				_token_:token
 			},
 			success: function (err, httpRes, res) {
+				console.log(httpRes.headers)
 				var cookie = extractCookie(httpRes.headers);
 				assert(cookie != null, "Null cookie in AbleToSignIn");
 				req.cookie(cookie);
 				cb();
 			}
 		}
-		req.post(config.url, { form: config.data }, config.success);
+		req.post(config.url, { form: config.data }, config.success);	
+		})
 	}
 	
 	function AbleToCheckTorrents(cb){
-		getHomePage(function(err,httpRes,res){
-				var $ = cheerio.load(res);
-				assert($("#main-menu").length > 0);
+		getHomePage(function($){
+				assert($("#main-menu").length <= 0,"Unable to check torrents");
 				cb();
 			});
 	}
@@ -63,7 +67,7 @@ function main() {
 		var key;
 		function getToken(cb2){
 			getHomePage(function($){
-				key = $.find("body").attr("data-user-token");
+				key = $("body").first().attr("data-user-token");
 				assert(key,"Could find a token");
 				cb2();
 			})
@@ -76,19 +80,24 @@ function main() {
 					links:"http://torcache.net/torrent/BBA1876861A473B276522C06D00689A2886651BB.torrent?title=[kat.cr]a.song.of.ice.and.fire.book.5.a.dance.with.dragons"
 				},
 				success:function(err,headers,success){
-					
+					getPage("https://bitport.io/recapitulation",function($){
+						// Need a way to kill a torrent
+						assert($("#queue-items").children().length > 0,"No torrents added");
+					})
 				}
 			}
 		}
 		async.series([
-			getToken
+			getToken,
+			sendReq
 		])
 	}
 	
 	async.series(
 	[
 	AbleToSignIn,
-	AbleToCheckTorrents
+	AbleToCheckTorrents,
+	AbleToAddTorrent
 	])
 }
 
