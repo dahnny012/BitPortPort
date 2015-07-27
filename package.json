@@ -1,0 +1,29 @@
+{
+  "name": "BitPortPort",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dahnny012/BitPortPort.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dahnny012/BitPortPort/issues"
+  },
+  "homepage": "https://github.com/dahnny012/BitPortPort",
+  "dependencies": {
+    "karma": "^0.13.3"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-jsbeautifier": "^0.2.10",
+    "jasmine-core": "^2.3.4",
+    "karma-chrome-launcher": "^0.2.0",
+    "karma-jasmine": "^0.3.6"
+  }
+}

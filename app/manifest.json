@@ -1,0 +1,28 @@
+{
+  "name": "BitPortPort",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "A bitport io helper",
+  "icons": {
+    "16": "images/icon-16.png",
+    "128": "images/icon-128.png"
+  },
+  "background": {
+    "scripts": [
+      "libraries/angular.min.js",
+      "libraries/async.js",
+      "libraries/jquery.js",
+      "scripts/Bitport.js",
+      "scripts/chromereload.js",
+      "scripts/app.js",
+      "scripts/background.js"
+    ],
+    "persistent": true
+  },
+  "browser_action": {
+    "default_icon": "images/icon-16.png",
+    "default_popup":"popup.html"
+  },
+  "permissions":["https://*/","contextMenus"],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}
