@@ -18,7 +18,7 @@ module.exports = function(config) {
       //'app/scripts/*.js',
       'app/libraries/*.js',
       'app/scripts/bitport.js',
-      'tests/*.js'
+      'tests/app-spec/*.js'
     ],
 
 
@@ -59,6 +59,10 @@ module.exports = function(config) {
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     browsers: ['Chrome'],
+    
+    client: {
+      captureConsole: true,
+    },
 
 
     // Continuous Integration mode
