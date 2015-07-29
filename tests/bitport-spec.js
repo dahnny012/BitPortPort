@@ -45,7 +45,6 @@ function main() {
 				_token_:token
 			},
 			success: function (err, httpRes, res) {
-				console.log(httpRes.headers)
 				var cookie = extractCookie(httpRes.headers);
 				assert(cookie != null, "Null cookie in AbleToSignIn");
 				req.cookie(cookie);
@@ -80,12 +79,33 @@ function main() {
 					links:"http://torcache.net/torrent/BBA1876861A473B276522C06D00689A2886651BB.torrent?title=[kat.cr]a.song.of.ice.and.fire.book.5.a.dance.with.dragons"
 				},
 				success:function(err,headers,success){
-					getPage("https://bitport.io/recapitulation",function($){
-						// Need a way to kill a torrent
-						assert($("#queue-items").children().length > 0,"No torrents added");
-					})
+					// Wait a second for torrent to appear
+					var retries = 5;
+					var length = 0;
+					function checkTorrent(){
+						retries--;
+						return length > 0;
+					}
+					function getTorrentPage(cb){
+						if(retries <= 0)
+							cb("ERROR");
+						setTimeout(function(){
+							getPage("https://bitport.io/recapitulation",function($){
+							length = $("#queue-items").find("tr").length;
+							cb();
+						})},200);
+					}
+					function fail(err){
+						if(err)
+							assert(false,"No torrent added");
+						assert(true);
+					}
+					async.until(checkTorrent,getTorrentPage,fail)
 				}
 			}
+			
+			req.post(config.url,{form:config.data},config.success);
+			
 		}
 		async.series([
 			getToken,
