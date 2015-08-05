@@ -1,7 +1,7 @@
 // Simple
 function request(config) {
 	if (typeof (config) != "object") {
-		$.get(config);
+		return $.get(config);
 	}
     if (config.data) {
         return $.post(config.url, config.data);
@@ -22,6 +22,11 @@ Bitport.prototype.homeUrl = "https://bitport.io/";
 Bitport.prototype.addUrl = "https://fes.bitport.io/torrentInfoService/v1/torrent/add/";
 Bitport.prototype.queueUrl = "https://bitport.io/to-queue";
 Bitport.prototype.statusUrl = "https://fes.bitport.io/torrentInfoService/v1/torrent/poll/";
+Bitport.prototype.torrentStatusUrl = "https://bitport.io/transfers-status"
+Bitport.prototype.cancelTransferUrl = function(token){
+	return "https://bitport.io/transfers?token="+token+"&do=deleteTransfer"
+}
+
 
 
 function run_tests() {
@@ -85,15 +90,52 @@ function run_tests() {
     describe("Can queue torrents and check their status", function (name) {
         queueReady.then(function () {
 			async.series([wipeAddedTorrents,
+						  // Add a url to test with
 						  function(next){bitport.addTorrent(testUrl,next)},
-						  bitport.getAddedTorrentStatus,
-						  function(next){ bitport.queueTorrents.then(next)},
-						  
-						  ]);
-            // Add a torrent
-            // Press queue
-            // ????
-            // profit
+						  // Check Status to make sure we are good to go.
+						  function(next){
+							  bitport.getAddedTorrentStatus(function(){
+								  assert(bitport.addedTorrents.length >0,"In Can Queue,Couldnt add torrent","Added torrent");
+								  next();
+							  })
+						  },
+						  // Queue em up
+						  function(next){ bitport.queueTorrents().then(function(){
+							  next();
+						  })},
+						  // Check the transfer status
+						  function(next){
+							async.timesSeries(10,
+								function(n,keepTrying){
+									bitport.getTorrentStatus().then(function(data){
+										bitport.transfers = data;
+										if(bitport.transfers.waitingTransfers.length > 0 ||
+										   bitport.transfers.activeTransfers.length > 0){
+											keepTrying(1)
+										}else{
+											keepTrying()
+										}
+									})
+								},
+								function(err){
+									if(err && err == 1){
+										assert(true,undefined,name);
+										next()
+									}else{
+										assert(false,"Can not see torrent status");
+									}
+								} 
+							)}],
+							function(err,data){
+								// Wipe transfers
+								bitport.transfers.waitingTransfers.forEach(function(e){
+									request(bitport.cancelTransferUrl(e.token));
+								})
+								
+								bitport.transfers.activeTransfers.forEach(function(e){
+									request(bitport.cancelTransferUrl(e.token));
+								})
+							});
         });
     })
 
@@ -226,14 +268,12 @@ Bitport.prototype.isLoggedIn = function () {
 
 
 Bitport.prototype.getTorrentStatus = function () {
-
+	var bitport = this;
+	return request(bitport.torrentStatusUrl);
 };
 
-
 Bitport.prototype.queueTorrents = function () {
-    return request({
-        url: this.queueUrl
-    })
+    return request(this.queueUrl);
 };
 
 Bitport.prototype.addTorrent = function (url, cb) {
