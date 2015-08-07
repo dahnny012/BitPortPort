@@ -9,7 +9,7 @@
   },
   "background": {
     "scripts": [
-      "libraries/angular.min.js",
+      "libraries/ractive.js",
       "libraries/async.js",
       "libraries/jquery.js",
       "scripts/bitport.js",
