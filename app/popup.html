@@ -9,17 +9,17 @@
 		<script src="scripts/app.js"></script>
 	</head>
 	<body ng-app="App">
+		<h4>{{statusMessage}}</h4>
 		<div ng-controller="LoginController as Login">
-			<button ng-click="Login.launch()" ng-show="mainMenu">Login</button>
+			<button ng-click="Login.launch()" ng-show="!loggedIn">Login</button>
 		</div>
-		<div ng-show="!mainMenu" ng-controller="MainMenuController as Main">
-			<ul class="collection">
-				<li class="collection-item">Torrent Name: Status</li>
-				<li ng-repeat="obj in Main.torrents"></li>
-			</ul>
+		{{mainMenu}}
+		<div ng-show="mainMenu" ng-controller="MainMenuController as Main">
+			{{addedTorrents}}
 			<div class="row">
 				<div ng-click="Main.queue()">Queue</a>
 				</div>
 			</div>
+		</div>
 	</body>
 </html>

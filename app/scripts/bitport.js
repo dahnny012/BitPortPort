@@ -29,6 +29,7 @@ Bitport.prototype.cancelTransferUrl = function(token){
 
 
 Bitport.prototype.getAddedTorrentStatus = function (cb) {
+	var defer = $.Deferred();
 	var bitport = this;
     if (this.userToken) {
         async.timesSeries(5,
@@ -38,6 +39,7 @@ Bitport.prototype.getAddedTorrentStatus = function (cb) {
                     if (data.length > 0) {
 						bitport.addedTorrents = bitport.torrentTableJSON(data);
                         next("Updated");
+						defer.resolve();
                     } else {
                         next();
                     }
@@ -53,6 +55,7 @@ Bitport.prototype.getAddedTorrentStatus = function (cb) {
                 }
             });
     }
+	return defer.promise();
 }
 
 
@@ -108,7 +111,10 @@ Bitport.prototype.isLoggedIn = function () {
 
 Bitport.prototype.getTorrentStatus = function () {
 	var bitport = this;
-	return request(bitport.torrentStatusUrl);
+	return request(bitport.torrentStatusUrl).then(function(data){
+		bitport.transfers = data;
+		return data;
+	});
 };
 
 Bitport.prototype.queueTorrents = function () {
@@ -181,19 +187,18 @@ Bitport.prototype.torrentTable = function (html) {
         rows.each(function (i, node) {
             switch (node.className) {
                 case "td-name":
-                    torrent.name = node.innerText;
-                    prop++;
+                    torrent.name = node.innerText.trim();
                     break;
                 case "td-weak":
-                    torrent.size = node.innerText;
+                    torrent.size = node.innerText.trim();
                     prop++;
                     break;
                 case "td-status":
-                    torrent.status = node.innerText;
+                    torrent.status = node.innerText.trim();
                     prop++;
                     break;
                 case "align-right td-folder":
-                    torrent.dir = node.innerText;
+                    torrent.dir = node.innerText.trim();
                     prop++;
                     break;
                 case "td-remove":

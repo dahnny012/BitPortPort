@@ -41,10 +41,16 @@ app.service("chrome", function($q) {
 
 app.controller("LoginController", ["chrome", "$scope", "$rootScope","$q",
     function(chrome, $scope, $rootScope,$q) {
-		$scope.mainMenu = true;
+		$scope.loggedIn = false;
 		function init(){
+			$rootScope.statusMessage = "Checking to see if you are logged In";
 			chrome.isLoggedIn().then(function(res){
-				$scope.mainMenu = !res.loggedIn;
+				if(res.loggedIn){
+					$rootScope.$broadcast("loggedIn");
+				}else{
+					$rootScope.statusMessage = "You are not logged in.";
+				}
+				$scope.loggedIn = res.loggedIn;
 			})
 		}
 		
@@ -61,12 +67,16 @@ app.controller("LoginController", ["chrome", "$scope", "$rootScope","$q",
 
 
 
-app.controller("MainMenuController", ["$scope", "$http", "bitport", "chrome",
-    function($scope, $http, bitport, chrome) {
+app.controller("MainMenuController", ["$scope", "$http", "chrome","$rootScope",
+    function($scope, $http, chrome,$rootScope) {
 		
 		function init(){
-			chrome.addedTorrents().then(function(){});
-			chrome.torrentStatus().then(function(){});
+			chrome.addedTorrents().then(function(data){
+				$scope.addedTorrents = data;
+			});
+			chrome.torrentStatus().then(function(data){
+				$scope.torrentStatus = data;
+			});
 			// Ask the background page for anything
 			// in progress
 			// waiting to be queued..
@@ -90,6 +100,10 @@ app.controller("MainMenuController", ["$scope", "$http", "bitport", "chrome",
             })
         };
 		
-		init();
+		$rootScope.$on("loggedIn",function(){
+			$rootScope.statusMessage = "Welcome to BitPort Port";
+			$scope.mainMenu = true;
+			init();
+		})
     }
 ]);
