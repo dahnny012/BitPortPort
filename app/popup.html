@@ -17,24 +17,6 @@
 		</div>{{mainMenu}}
 		<div ng-show="mainMenu" ng-controller="MainMenuController as Main" style="padding:10px">
 			<div class="tableWrapper">
-				<div class="header">Waiting to be queued</div>
-				<table>
-					<tr>
-						<th>Name</th>
-						<th>Remove</th>
-					</tr>
-					<tr ng-repeat="torrent in addedTorrents">
-						<td>{{torrent.name}}</td>
-						<td>
-							<button ng-click="Main.remove($index)">x</button>
-						</td>
-					</tr>
-				</table>
-			</div>
-			<div class="center">
-				<button class="button" ng-click="Main.queue()">Queue</button>
-			</div>
-			<div class="tableWrapper">
 				<div class="header">Active</div>
 				<table>
 					<tr>
@@ -46,6 +28,22 @@
 						<td>{{torrent.downloadedPart * 100}}%</td>
 					</tr>
 				</table>
+			</div>
+			<div class="tableWrapper">
+				<div class="header">Waiting to be queued</div>
+				<table>
+					<tr>
+						<th>Name</th>
+						<th>Remove</th>
+					</tr>
+					<tr ng-repeat="torrent in addedTorrents">
+						<td>{{torrent.name}}</td>
+						<td>
+							<button class="small-button" ng-click="Main.remove($index)">x</button>
+						</td>
+					</tr>
+				</table>
+					<button class="small-button" ng-click="Main.queue()">Queue</button>
 			</div>
 			<div class="tableWrapper">
 				<div class="header">Waiting</div>

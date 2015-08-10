@@ -34,6 +34,19 @@ th{
 		color:white;
 }
 
+.small-button{
+	background-color: green;
+    border: 1px solid rgb(0, 0, 0);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 0.25em;
+    height: 2.5em;
+    line-height: 2.5;
+    margin: 0.25em;
+    padding: 0 1em;
+    width: inherit;
+		color:white;
+}
+
 .center{
 	width:50%;
 		margin-right:auto;

@@ -1,16 +1,23 @@
 (function () {
     var bitport = new Bitport();
+	var loginManager = new LoginManager();
+
     chrome.runtime.onMessage.addListener(
         function (request, sender, sendResponse) {
             switch (request.msg) {
 				case "loggedIn":
-					bitport.isLoggedIn().then(function (data) {
-						if (data) {
-							sendResponse({ loggedIn: true })
-						} else {
-							sendResponse({ loggedIn: false })
-						}
-					})
+					if (loginManager.login()) {
+						console.log("wut");
+						bitport.isLoggedIn().then(function (data) {
+							if (data) {
+								sendResponse({ loggedIn: true })
+							} else {
+								sendResponse({ loggedIn: false })
+							}
+						})
+					} else {
+						sendResponse({ loggedIn: true })
+					}
 					break;
                 case "queue":
 					bitport.queueTorrents().then(function () {
@@ -55,3 +62,21 @@
 			return true;
         });
 })();
+
+function LoginManager() {
+	var ms = 1000;
+	var hour = 3600 * ms;
+	var minute = 60 * ms;
+	var checkInterval = 5 * minute;
+	var currentTime;
+	this.login = function () {
+		var checkTime = new Date();
+		if (currentTime) {
+			var difference = checkTime.valueOf() - currentTime;
+			return currentTime > checkInterval;
+		} else {
+			currentTime = checkTime.valueOf();
+			return true;
+		}
+	}
+}
