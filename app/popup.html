@@ -14,11 +14,22 @@
 			<button ng-click="Login.launch()" ng-show="!loggedIn">Login</button>
 		</div>
 		{{mainMenu}}
-		<div ng-show="mainMenu" ng-controller="MainMenuController as Main">
-			{{addedTorrents}}
+		<div ng-show="mainMenu" ng-controller="MainMenuController as Main" style="padding:10px">
+			<h3>Torrents added</h3>
+			<ul>
+				<li ng-repeat="torrent in addedTorrents">
+					{{torrent.name}} <button ng-click="Main.remove($index)">x</button>
+				</li>
+			</ul>
+			
+			<h3>Torrents in progresss</h3>
+			<ul>
+				<li ng-repeat="torrent in transfers">
+					{{torrent.name}}
+				</li>
+			</ul>
 			<div class="row">
-				<div ng-click="Main.queue()">Queue</a>
-				</div>
+				<button ng-click="Main.queue()">Queue</button>
 			</div>
 		</div>
 	</body>

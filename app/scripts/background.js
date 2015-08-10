@@ -18,26 +18,45 @@
 					})
 					break;
                 case "queue":
+					bitport.queueTorrents().then(function () {
+						sendResponse();
+					})
                     break;
                 case "torrentStatus":
 					if (!bitport.addedTorrents) {
 						bitport.getAddedTorrents().then(function () {
-							sendResponse(bitport.addedTorrents);
+							sendResponse(bitport.transfers);
 						})
 					} else {
-						sendResponse(bitport.addedTorrents);
+						sendResponse(bitport.transfers);
 					}
                     break;
 				case "addedTorrents":
-					// TODO
-					// Check if dirty
-					if (!bitport.addedTorrents) {
+					// User Recent added something
+					if (bitport.dirty) {
+						bitport.addPromise.then(function () {
+							bitport.getAddedTorrentStatus().then(function () {
+								sendResponse(bitport.addedTorrents);
+							})
+						})
+					}
+					// Hard scrape
+				    else if (!bitport.addedTorrents) { 
 						bitport.getAddedTorrents().then(function () {
 							sendResponse(bitport.addedTorrents);
 						})
 					} else {
+					// Not dirty
 						sendResponse(bitport.addedTorrents);
 					}
+					break;
+				case "addTorrent":
+					bitport.addTorrent(request.file);
+					break;
+				case "removeAdded":
+					bitport.removeAddedTorrent(request.index).then(function () {
+						sendResponse(bitport.addedTorrents);
+					})
 					break;
                 default:
                     return;

@@ -30,6 +30,12 @@ app.service("chrome", function($q) {
                 url: url
             });
 		},
+		removeAdded:function(index){
+			return sendMsg({
+				msg:"removeAdded",
+				index:index
+			});
+		}
 		 
     };
 });
@@ -75,17 +81,14 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome","$rootScope",
 				$scope.addedTorrents = data;
 			});
 			chrome.torrentStatus().then(function(data){
-				$scope.torrentStatus = data;
+				$scope.transfers = data;
 			});
-			// Ask the background page for anything
-			// in progress
-			// waiting to be queued..
 		}
 		
         this.queue = function() {
-            chrome.queue(function(res) {
-                console.log(res);
-            })
+            chrome.queue().then(function(){
+				init();
+			})
         };
 
         this.query = function() {
@@ -99,6 +102,12 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome","$rootScope",
                 console.log(res);
             })
         };
+		
+		this.remove = function(index){
+			chrome.removeAdded(index).then(function(data){
+				$scope.addedTorrents = data;
+			})
+		}
 		
 		$rootScope.$on("loggedIn",function(){
 			$rootScope.statusMessage = "Welcome to BitPort Port";

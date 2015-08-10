@@ -13,6 +13,7 @@
       "libraries/jquery.js",
       "scripts/bitport.js",
 			//"scripts/bitport-spec.js",
+			"scripts/context.js",
       "scripts/chromereload.js",
       "scripts/background.js"
     ],
