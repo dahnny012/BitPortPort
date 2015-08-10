@@ -1,73 +1,69 @@
 //"use strict";
 
-var app = angular.module("App");
+var app = angular.module("App",[]);
 
 
-
-app.service("bitport", ["$http", "$q"], function($http, $q) {
-    var base = "https://bitport.io/";
+app.service("chrome", function($q) {
+	
+	function sendMsg(config){
+		var defer = $q.defer();
+		chrome.runtime.sendMessage(config,function(data){
+			defer.resolve(data);
+		})
+		return defer.promise;
+	}
     return {
-        query: function() {
-
+		isLoggedIn:function(){
+			return sendMsg({msg:"loggedIn"});
+		},
+        queue: function(cb) {
+            return sendMsg({msg:"queue"});
         },
-        loggedIn: function() {
-            var defer = $q.defer();
-            $http.get(base).success(function(response) {
-                var menu = $(response).find("#main-menu");
-                defer.resolve(menu.length <= 0);
+        addedTorrents: function(cb) {
+			return sendMsg({msg:"addedTorrents"});
+        },
+		torrentStatus: function(cb) {
+			return sendMsg({msg:"torrentStatus"});
+        },
+		newTab:function(url){
+			chrome.tabs.create({
+                url: url
             });
-            return defer.promise
-        }
+		},
+		removeAdded:function(index){
+			return sendMsg({
+				msg:"removeAdded",
+				index:index
+			});
+		}
+		 
     };
 });
 
-app.service("chrome", function() {
-    return {
-        queue: function(cb) {
-            chrome.runtime.sendMessage({
-                msg: "queue"
-            }, cb);
-        },
-        query: function(cb) {
-            chrome.runtime.sendMessage({
-                msg: "query"
-            }, cb);
-        },
-        torrents: function(cb) {
-            chrome.runtime.sendMessage({
-                msg: "torrents"
-            }, cb);
-        }
-    };
-})
 
 
 
 
 
-
-app.controller("LoginController", ["$http", "bitport", "$scope", "$rootScope",
-    function($http, bitport, $scope, $rootScope) {
-
-        function setState() {
-            bitport.loggedIn.then(function(status) {
-                if (status) {
-                    $rootScope.mainMenu = true;
-                } else {
-                    $rootScope.mainMenu = false;
-                }
-            })
-        }
-
-        this.launch = function() {
-            chrome.tabs.create({
-                url: "https://bitport.io/login"
-            });
-        };
-
-        /* Run app */
-        $rootScope.mainMenu = false;
-        setState();
+app.controller("LoginController", ["chrome", "$scope", "$rootScope","$q",
+    function(chrome, $scope, $rootScope,$q) {
+		$scope.loggedIn = false;
+		function init(){
+			$rootScope.statusMessage = "Checking to see if you are logged In";
+			chrome.isLoggedIn().then(function(res){
+				if(res.loggedIn){
+					$rootScope.$broadcast("loggedIn");
+				}else{
+					$rootScope.statusMessage = "You are not logged in.";
+				}
+				$scope.loggedIn = res.loggedIn;
+			})
+		}
+		
+		this.launch = function(){
+			chrome.newTab("https://bitport.io/login");
+		}
+		init();
     }
 ]);
 
@@ -77,12 +73,22 @@ app.controller("LoginController", ["$http", "bitport", "$scope", "$rootScope",
 
 
 
-app.controller("MainMenuController", ["$rootScope", "$http", "bitport", "chrome",
-    function($rootScope, $http, bitport, chrome) {
+app.controller("MainMenuController", ["$scope", "$http", "chrome","$rootScope",
+    function($scope, $http, chrome,$rootScope) {
+		
+		function init(){
+			chrome.addedTorrents().then(function(data){
+				$scope.addedTorrents = data;
+			});
+			chrome.torrentStatus().then(function(data){
+				$scope.transfers = data;
+			});
+		}
+		
         this.queue = function() {
-            chrome.queue(function(res) {
-                console.log(res);
-            })
+            chrome.queue().then(function(){
+				init();
+			})
         };
 
         this.query = function() {
@@ -96,5 +102,17 @@ app.controller("MainMenuController", ["$rootScope", "$http", "bitport", "chrome"
                 console.log(res);
             })
         };
+		
+		this.remove = function(index){
+			chrome.removeAdded(index).then(function(data){
+				$scope.addedTorrents = data;
+			})
+		}
+		
+		$rootScope.$on("loggedIn",function(){
+			$rootScope.statusMessage = "Welcome to BitPort Port";
+			$scope.mainMenu = true;
+			init();
+		})
     }
 ]);

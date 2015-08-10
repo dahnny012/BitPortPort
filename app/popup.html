@@ -1,36 +1,36 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <link href="css/popup.css" rel="stylesheet">
-    <!-- endbuild -->
-  </head>
-  <body ng-app="App">
-  
-  <div ng-controller="LoginController as Login">
-    <button ng-click="Login.launch()" ng-show="mainMenu">Login</button>
-  </div>
-  
-  <!--div ng-show="mainMenu" ng-controller="MainMenuController as Main">
-    <!ul class="collection">
-      <li class="collection-item">Torrent Name: Status</li>
-      <li ng-repeat="obj in Main.torrents">
-      </li>
-    </ul>
-    <div class="row">
-      <div ng-click="Main.queue()"class="col s4 offset-s4 btn btn-large waves-effect">Queue</a>
-    </div>
-  </div-->
-  
-    <!-- build:js scripts/vendor.js -->
-    <!-- bower:js -->
-    <!-- endbower -->
-    <!-- endbuild -->
-
-    <!-- build:js scripts/popup.js -->
-    <script src="libraries/angular.min.js"> </script>
-    <script src="libraries/jquery.js"></script>
-    <script src="scripts/app.js"></script>
-    <!-- endbuild -->
-  </body>
+	<head>
+		<meta charset="utf-8">
+		<link href="css/popup.css" rel="stylesheet">
+		<script src="libraries/angular.min.js">
+</script>
+		<script src="libraries/jquery.js"></script>
+		<script src="scripts/app.js"></script>
+	</head>
+	<body ng-app="App">
+		<h4>{{statusMessage}}</h4>
+		<div ng-controller="LoginController as Login">
+			<button ng-click="Login.launch()" ng-show="!loggedIn">Login</button>
+		</div>
+		{{mainMenu}}
+		<div ng-show="mainMenu" ng-controller="MainMenuController as Main" style="padding:10px">
+			<h3>Torrents added</h3>
+			<ul>
+				<li ng-repeat="torrent in addedTorrents">
+					{{torrent.name}} <button ng-click="Main.remove($index)">x</button>
+				</li>
+			</ul>
+			
+			<h3>Torrents in progresss</h3>
+			<ul>
+				<li ng-repeat="torrent in transfers">
+					{{torrent.name}}
+				</li>
+			</ul>
+			<div class="row">
+				<button ng-click="Main.queue()">Queue</button>
+			</div>
+		</div>
+	</body>
 </html>
