@@ -1,3 +1,6 @@
+/* Tests are outdated */
+
+
 function run_tests() {
 	var testUrl = "http://torcache.net/torrent/BBA1876861A473B276522C06D00689A2886651BB.torrent?title=[kat.cr]a.song.of.ice.and.fire.book.5.a.dance.with.dragons"
     var dataBeingChanged = $.Deferred();

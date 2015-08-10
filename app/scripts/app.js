@@ -81,7 +81,11 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome","$rootScope",
 				$scope.addedTorrents = data;
 			});
 			chrome.torrentStatus().then(function(data){
-				$scope.transfers = data;
+				$scope.waiting = data.waitingTransfers;
+				
+				$scope.active = data.activeTransfers;
+				
+				$scope.finished = data.recentlyDownloadedTransfers;
 			});
 		}
 		

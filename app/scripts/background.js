@@ -1,8 +1,3 @@
-// m --> module
-
-
-
-
 (function () {
     var bitport = new Bitport();
     chrome.runtime.onMessage.addListener(
@@ -23,13 +18,9 @@
 					})
                     break;
                 case "torrentStatus":
-					if (!bitport.addedTorrents) {
-						bitport.getAddedTorrents().then(function () {
-							sendResponse(bitport.transfers);
-						})
-					} else {
+					bitport.getTorrentStatus().then(function () {
 						sendResponse(bitport.transfers);
-					}
+					})
                     break;
 				case "addedTorrents":
 					// User Recent added something
@@ -41,12 +32,12 @@
 						})
 					}
 					// Hard scrape
-				    else if (!bitport.addedTorrents) { 
+					else if (!bitport.addedTorrents) {
 						bitport.getAddedTorrents().then(function () {
 							sendResponse(bitport.addedTorrents);
 						})
 					} else {
-					// Not dirty
+						// Not dirty
 						sendResponse(bitport.addedTorrents);
 					}
 					break;
@@ -59,7 +50,7 @@
 					})
 					break;
                 default:
-                    return;
+                    return true;
             }
 			return true;
         });

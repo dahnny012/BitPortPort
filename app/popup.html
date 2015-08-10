@@ -12,25 +12,31 @@
 		<h4>{{statusMessage}}</h4>
 		<div ng-controller="LoginController as Login">
 			<button ng-click="Login.launch()" ng-show="!loggedIn">Login</button>
-		</div>
-		{{mainMenu}}
+		</div>{{mainMenu}}
 		<div ng-show="mainMenu" ng-controller="MainMenuController as Main" style="padding:10px">
 			<h3>Torrents added</h3>
 			<ul>
-				<li ng-repeat="torrent in addedTorrents">
-					{{torrent.name}} <button ng-click="Main.remove($index)">x</button>
+				<li ng-repeat="torrent in addedTorrents">{{torrent.name}}
+					<button ng-click="Main.remove($index)">x</button>
 				</li>
 			</ul>
-			
 			<h3>Torrents in progresss</h3>
+			<h4>Active</h4>
 			<ul>
-				<li ng-repeat="torrent in transfers">
-					{{torrent.name}}
-				</li>
+				<li ng-repeat="torrent in active">{{torrent.name}} | {{torrent.downloadedPart * 100}}%</li>
+			</ul>
+			<ul>
+				<h4>Waiting</h4>
+				<li ng-repeat="torrent in waiting">{{torrent.name}}</li>
+			</ul>
+			<ul>
+				<h4>Finished</h4>
+				<li ng-repeat="torrent in finished">{{torrent.name}}</li>
 			</ul>
 			<div class="row">
 				<button ng-click="Main.queue()">Queue</button>
 			</div>
 		</div>
 	</body>
+
 </html>
