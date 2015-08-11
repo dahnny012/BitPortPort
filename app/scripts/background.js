@@ -1,21 +1,23 @@
-// m --> module
-
-
-
-
 (function () {
     var bitport = new Bitport();
+	var loginManager = new LoginManager();
+
     chrome.runtime.onMessage.addListener(
         function (request, sender, sendResponse) {
             switch (request.msg) {
 				case "loggedIn":
-					bitport.isLoggedIn().then(function (data) {
-						if (data) {
-							sendResponse({ loggedIn: true })
-						} else {
-							sendResponse({ loggedIn: false })
-						}
-					})
+					if (loginManager.login()) {
+						console.log("wut");
+						bitport.isLoggedIn().then(function (data) {
+							if (data) {
+								sendResponse({ loggedIn: true })
+							} else {
+								sendResponse({ loggedIn: false })
+							}
+						})
+					} else {
+						sendResponse({ loggedIn: true })
+					}
 					break;
                 case "queue":
 					bitport.queueTorrents().then(function () {
@@ -23,13 +25,9 @@
 					})
                     break;
                 case "torrentStatus":
-					if (!bitport.addedTorrents) {
-						bitport.getAddedTorrents().then(function () {
-							sendResponse(bitport.transfers);
-						})
-					} else {
+					bitport.getTorrentStatus().then(function () {
 						sendResponse(bitport.transfers);
-					}
+					})
                     break;
 				case "addedTorrents":
 					// User Recent added something
@@ -41,12 +39,12 @@
 						})
 					}
 					// Hard scrape
-				    else if (!bitport.addedTorrents) { 
+					else if (!bitport.addedTorrents) {
 						bitport.getAddedTorrents().then(function () {
 							sendResponse(bitport.addedTorrents);
 						})
 					} else {
-					// Not dirty
+						// Not dirty
 						sendResponse(bitport.addedTorrents);
 					}
 					break;
@@ -59,8 +57,26 @@
 					})
 					break;
                 default:
-                    return;
+                    return true;
             }
 			return true;
         });
 })();
+
+function LoginManager() {
+	var ms = 1000;
+	var hour = 3600 * ms;
+	var minute = 60 * ms;
+	var checkInterval = 5 * minute;
+	var currentTime;
+	this.login = function () {
+		var checkTime = new Date();
+		if (currentTime) {
+			var difference = checkTime.valueOf() - currentTime;
+			return currentTime > checkInterval;
+		} else {
+			currentTime = checkTime.valueOf();
+			return true;
+		}
+	}
+}
