@@ -52,3 +52,38 @@ th{
 		margin-right:auto;
 		margin-left:auto;
 }
+
+.navList{
+	margin-bottom:1%;
+}
+.nav
+{
+	display: inline-block;
+	width:24.5%;
+	padding-top:10px;
+	padding-bottom:10px;
+	background:green;
+	color:white;
+}
+
+.nav:hover{
+	background:#535353;
+	cursor: pointer;
+}
+
+.button:hover{
+	background:#535353;
+	cursor: pointer;
+}
+
+
+
+.small-button:hover{
+	background:#535353;
+	cursor: pointer;
+}
+
+.navItem{
+	padding-left:10%;
+	font-size:14px;
+}

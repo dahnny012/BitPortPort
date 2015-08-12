@@ -30,6 +30,9 @@ app.service("chrome", function($q) {
                 url: url
             });
 		},
+		myFiles:function(){
+			return sendMsg({msg:"myFiles"});
+		},
 		removeAdded:function(index){
 			return sendMsg({
 				msg:"removeAdded",
@@ -84,9 +87,11 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome","$rootScope",
 				$scope.waiting = data.waitingTransfers;
 				
 				$scope.active = data.activeTransfers;
-				
-				$scope.finished = data.recentlyDownloadedTransfers;
 			});
+			
+			chrome.myFiles().then(function(data){
+				$scope.finished = data;
+			})
 		}
 		
         this.queue = function() {
@@ -111,6 +116,11 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome","$rootScope",
 			chrome.removeAdded(index).then(function(data){
 				$scope.addedTorrents = data;
 			})
+		}
+		
+		
+		this.openUrl = function(url){
+			chrome.newTab(url);
 		}
 		
 		$rootScope.$on("loggedIn",function(){

@@ -16,6 +16,12 @@
 			</div>
 		</div>{{mainMenu}}
 		<div ng-show="mainMenu" ng-controller="MainMenuController as Main" style="padding:10px">
+			<div class="navList">
+				<span class="nav"> <span class="navItem"> Added </span> </span>
+				<span class="nav"> <span class="navItem"> Active </span></span>
+				<span class="nav"> <span class="navItem"> Waiting </span> </span>
+				<span class="nav"> <span class="navItem"> Downloaded </span> </span>
+			</div>
 			<div class="tableWrapper">
 				<div class="header">Active</div>
 				<table>
@@ -57,13 +63,17 @@
 				</table>
 			</div>
 			<div class="tableWrapper">
-				<div class="header">Recently Downloaded</div>
+				<div class="header">Downloaded</div>
 				<table>
 					<tr>
 						<th>Name</th>
+						<th>Size</th>
+						<th>Type</th>
 					</tr>
 					<tr ng-repeat="torrent in finished">
-						<td>{{torrent.name}}</td>
+						<td><a href="" ng-click="Main.openUrl(torrent.link)">{{torrent.name}}</span></td>
+						<td>{{torrent.size}}</td>
+						<td>{{torrent.type}}</td>
 					</tr>
 				</table>
 			</div>

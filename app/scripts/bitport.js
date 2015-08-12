@@ -26,6 +26,7 @@ Bitport.prototype.torrentStatusUrl = "https://bitport.io/transfers-status"
 Bitport.prototype.cancelTransferUrl = function(token){
 	return "https://bitport.io/transfers?token="+token+"&do=deleteTransfer"
 }
+Bitport.prototype.filesUrl = "https://bitport.io/my-files"
 
 Bitport.prototype.getAddedTorrentStatus = function (cb) {
 	var defer = $.Deferred();
@@ -237,6 +238,34 @@ Bitport.prototype.getAddedTorrents = function () {
             return true;
         })
 };
+
+
+Bitport.prototype.myFiles = function(){
+	var defer = $.Deferred();
+	var bitport = this;
+	request(bitport.filesUrl).then(function(data){
+		var page = $($(data).find("ul.list")[0]);
+		var files = page.find("li");
+		var downloaded = [];
+		files.each(function(i,e){
+			var file = $(e);
+			var size = file.find(".file-size")[0];
+			if(size.textContent.indexOf("0 B") < 0){
+				var link = [bitport.filesUrl,"/"];
+				var fileType = file[0].className.indexOf("folder") > 0? "folder":"file";
+				if(fileType === "file")
+					link.push(fileType,"/");
+				link.push(file.attr("data-code"));
+				link = link.join("");
+				var name = file.find("h2")[0].textContent;
+				var size = size.textContent;
+				downloaded.push({name:name,link:link,size:size,type:fileType});
+			}
+		})
+		defer.resolve(downloaded);
+	})
+	return defer;
+}
 
 
 Bitport.prototype.dirty = false;

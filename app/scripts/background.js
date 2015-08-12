@@ -7,7 +7,6 @@
             switch (request.msg) {
 				case "loggedIn":
 					if (loginManager.login()) {
-						console.log("wut");
 						bitport.isLoggedIn().then(function (data) {
 							if (data) {
 								sendResponse({ loggedIn: true })
@@ -56,6 +55,11 @@
 						sendResponse(bitport.addedTorrents);
 					})
 					break;
+				case "myFiles":
+					bitport.myFiles().then(function(data){
+						sendResponse(data);
+					});
+					break;
                 default:
                     return true;
             }
@@ -73,7 +77,7 @@ function LoginManager() {
 		var checkTime = new Date();
 		if (currentTime) {
 			var difference = checkTime.valueOf() - currentTime;
-			return currentTime > checkInterval;
+			return difference > checkInterval;
 		} else {
 			currentTime = checkTime.valueOf();
 			return true;
