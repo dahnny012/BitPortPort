@@ -1,3 +1,3 @@
 # BitPortPort
 
-## Going to port BitPort to a chrome extension.
+## Going to port BitPort.io to a chrome extension.
