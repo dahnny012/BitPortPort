@@ -27,7 +27,7 @@
 		</div>
 		<div class="tabs" ng-switch="currentTab" ng-init='currentTab="active"'>
 			<div ng-switch-when="active" class="tableWrapper">
-				<div class="header">Active</div>
+				<div class="header">Active </div>
 				<table>
 					<tr>
 						<th>Name</th>
@@ -49,11 +49,11 @@
 					<tr ng-repeat="torrent in addedTorrents">
 						<td>{{torrent.name}}</td>
 						<td>
-							<button class="small-button" ng-click="Main.remove($index)">x</button>
+							<button class="button small-button" ng-click="Main.remove($index)">x</button>
 						</td>
 					</tr>
 				</table>
-				<button class="small-button" ng-click="Main.queue()">Queue</button>
+				<button class="button small-button" ng-click="Main.queue()">Queue</button>
 			</div>
 			<div ng-switch-when="waiting" class="tableWrapper">
 				<div class="header">Waiting</div>
@@ -79,14 +79,9 @@
 							<td>{{torrent.size}}</td>
 							<td>{{torrent.type}}</td>
 					</tr>
-
 				</table>
-
 			</div>
-
-			</div>
-
 		</div>
-
+	</div>
 	</body>
 </html>
