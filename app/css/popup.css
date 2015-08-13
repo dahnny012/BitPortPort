@@ -21,6 +21,12 @@ th{
 	padding-bottom:10px;
 }
 
+.headerWrapper{
+	background:#535353;
+	color:white;
+	font-size:14px;
+}
+
 .button{
 	background-color: green;
     border: 1px solid rgb(0, 0, 0);
@@ -35,20 +41,50 @@ th{
 }
 
 .small-button{
-	background-color: green;
-    border: 1px solid rgb(0, 0, 0);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 0.25em;
-    height: 2.5em;
-    line-height: 2.5;
-    margin: 0.25em;
-    padding: 0 1em;
+	border: 1px solid rgb(66, 66, 66);
     width: inherit;
-		color:white;
+}
+
+.sub-button{
+	background:#535353;
+	padding:0 .5em;
+	width:inherit;
 }
 
 .center{
 	width:50%;
 		margin-right:auto;
 		margin-left:auto;
+}
+
+.navList{
+	margin-bottom:1%;
+}
+.nav
+{
+	display: inline-block;
+	width:24.5%;
+	padding-top:10px;
+	padding-bottom:10px;
+	background:green;
+	color:white;
+}
+
+.nav:hover{
+	background:#535353;
+	cursor: pointer;
+}
+
+.button:hover{
+	background:#535353;
+	cursor: pointer;
+}
+
+.sub-button:hover{
+	background: #4D4D4D
+}
+
+.navItem{
+	padding-left:10%;
+	font-size:14px;
 }
