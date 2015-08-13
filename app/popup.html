@@ -1,28 +1,32 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<link href="css/popup.css" rel="stylesheet">
-		<script src="libraries/angular.min.js">
-</script>
-		<script src="libraries/jquery.js"></script>
-		<script src="scripts/app.js"></script>
-	</head>
-	<body ng-app="App">
-		<div ng-controller="LoginController as Login">
-			<div ng-show="!loggedIn" class="header">{{statusMessage}}</div>
-			<div class="center">
-				<button class="button" ng-click="Login.launch()" ng-show="!loggedIn">Login</button>
-			</div>
-		</div>{{mainMenu}}
-		<div ng-show="mainMenu" ng-controller="MainMenuController as Main" style="padding:10px">
-			<div class="navList">
-				<span class="nav"> <span class="navItem"> Added </span> </span>
-				<span class="nav"> <span class="navItem"> Active </span></span>
-				<span class="nav"> <span class="navItem"> Waiting </span> </span>
-				<span class="nav"> <span class="navItem"> Downloaded </span> </span>
-			</div>
-			<div class="tableWrapper">
+
+<head>
+	<meta charset="utf-8">
+	<link href="css/popup.css" rel="stylesheet">
+	<script src="libraries/angular.min.js">
+
+	</script>
+	<script src="libraries/jquery.js"></script>
+	<script src="scripts/app.js"></script>
+</head>
+
+<body ng-app="App">
+	<div ng-controller="LoginController as Login">
+		<div ng-show="!loggedIn" class="header">{{statusMessage}}</div>
+		<div class="center">
+			<button class="button" ng-click="Login.launch()" ng-show="!loggedIn">Login</button>
+		</div>
+	</div>{{mainMenu}}
+	<div ng-show="mainMenu" ng-controller="MainMenuController as Main" style="padding:10px">
+		<div class="navList">
+			<span class="nav" ng-click='currentTab="active"'> <span class="navItem"> Active </span> </span>
+			<span class="nav" ng-click='currentTab="added"'> <span class="navItem"> Added </span></span>
+			<span class="nav" ng-click='currentTab="waiting"'><span class="navItem"> Waiting </span> </span>
+			<span class="nav" ng-click='currentTab="downloaded"'> <span class="navItem"> Downloaded </span> </span>
+		</div>
+		<div class="tabs" ng-switch="currentTab" ng-init='currentTab="active"'>
+			<div ng-switch-when="active" class="tableWrapper">
 				<div class="header">Active</div>
 				<table>
 					<tr>
@@ -35,7 +39,7 @@
 					</tr>
 				</table>
 			</div>
-			<div class="tableWrapper">
+			<div ng-switch-when="added" class="tableWrapper">
 				<div class="header">Waiting to be queued</div>
 				<table>
 					<tr>
@@ -49,9 +53,9 @@
 						</td>
 					</tr>
 				</table>
-					<button class="small-button" ng-click="Main.queue()">Queue</button>
+				<button class="small-button" ng-click="Main.queue()">Queue</button>
 			</div>
-			<div class="tableWrapper">
+			<div ng-switch-when="waiting" class="tableWrapper">
 				<div class="header">Waiting</div>
 				<table>
 					<tr>
@@ -62,7 +66,7 @@
 					</tr>
 				</table>
 			</div>
-			<div class="tableWrapper">
+			<div ng-switch-when="downloaded" class="tableWrapper">
 				<div class="header">Downloaded</div>
 				<table>
 					<tr>
@@ -72,12 +76,17 @@
 					</tr>
 					<tr ng-repeat="torrent in finished">
 						<td><a href="" ng-click="Main.openUrl(torrent.link)">{{torrent.name}}</span></td>
-						<td>{{torrent.size}}</td>
-						<td>{{torrent.type}}</td>
+							<td>{{torrent.size}}</td>
+							<td>{{torrent.type}}</td>
 					</tr>
-				</table>
-			</div>
-		</div>
-	</body>
 
+				</table>
+
+			</div>
+
+			</div>
+
+		</div>
+
+	</body>
 </html>
