@@ -1,5 +1,154 @@
-/* Tests are outdated */
+// Assuming not logged in tests
+function run_fail(){
+	function fail_login(){
+		var bitport = new Bitport();
+		var url = bitport.homeUrl;
+		bitport.homeUrl = "dfdsfdsf";
+		return bitport.isLoggedIn().then(function(){
+			throw "Should not of succedded";
+		}).fail(function(msg){
+			console.log("login: "+msg);
+			bitport.homeUrl = url;
+		})
+	}
+	
+	function fail_token(){
+		
+		var name = "token: ";
+		var bitport = new Bitport();
+		bitport.getToken(function (msg) {
+			assert(msg == "ERROR in finding token",
+				   "token:Did not error out finding token",
+				   name+msg);
+		})
+	}
+	
+	function fail_addTorrent(cb){
+		var name = "addTorrent: "
+		var bitport = new Bitport();
+		bitport.userToken = "av0tj6x9ahssxp56xl88ejbw2lbfdxbx";
+		// invalid url
+		bitport.addTorrent("random url",function(){
+			bitport.getAddedTorrentStatus().then(function(){
+				assert(bitport.addedTorrents[0].status != "",
+					   "addTorrent: did not find a errored torrent",
+					   name+" Detected a invalid url");
+					   cb();
+			})
+		})
+	}
+	
+	function fail_getTorrentStatus(){
+		var name = "getTorrentStatus :";
+		var bitport = new Bitport();
+		bitport.getTorrentStatus().fail(function(msg){
+			assert(msg == "ERROR not logged in",
+				"getTorrentStatus:Did not error out getting torrent status",
+				name+msg);
+			})
+	}
+	
+	function fail_removeAddedTorrent(cb){
+		var name = "removeAddedTorrent :";
+		var bitport = new Bitport();	
+		bitport.userToken = "av0tj6x9ahssxp56xl88ejbw2lbfdxbx";
+		bitport.removeAddedTorrent(1).fail(function(msg){
+			assert(msg=="ERROR no entries to delete",
+			"removeAddedTorrent:Did not error out removing an empty array",
+			name+msg);
+			invalid_token();
+			
+		});
+		
+		function invalid_token(){
+			var name="invalid token: ";
+			var bitport = new Bitport();
+			bitport.addedTorrents = [{remove:bitport.getRemoveUrl("dfdsfdsfsd")}];
+			bitport.removeAddedTorrent(0).fail(function(msg){
+				assert(msg=="ERROR Torrent was not removed",
+					"invalid_token:Did not error out removing",
+					name+msg)
+					cb()
+			});
+		}
+	}
+	
+	function fail_getAddedTorrentStatus(){
+		var name ="getAddedTorrentStatus: "
+		var bitport = new Bitport();
+		bitport.userToken = "FFEF";
+		bitport.getAddedTorrentStatus().fail(function (msg) {
+			assert(msg == "Could not connect to bitport.io",
+				"getAddedTorrentStatus:connected",
+				name + msg)
+		});
+	}
+	
+	
+	function fail_queueTorrents(cb){
+		var name = "queue: "
+		var bitport = new Bitport();
+		
+		bitport.queueTorrents().fail(function(msg){
+			assert(msg=="ERROR not logged in",
+				"Queue:Did not detect u are not logged in",
+				name+msg)
+				cb()
+		})
+	}
+	
+	function fail_myFiles(){
+		var name = "myFiles: ";
+		var bitport = new Bitport();
+		
+		bitport.myFiles().fail(function(msg){
+			assert(msg=="ERROR not logged in",
+			"Did not detect u are not logged in",
+			name+msg)
+		})
+	}
+	
+	
+	function fail_getAddedTorrents(){
+		var name ="getAddedTorrents";
+		var bitport= new Bitport();
+		bitport.getAddedTorrents().fail(function(msg){
+			assert(msg=="ERROR not logged in",
+				"getAddeTorrents:Did not detect u are not logged in",
+				name+msg);
+		})
+	}
+	
+	// Dont be logged in when running these
+	fail_login().fail(function(){
+		// User loses login token in the middle of the session.
+		// monitor calls that happen and make sure they fail gracefully
+		fail_token();
+		fail_getTorrentStatus();
+		fail_getAddedTorrentStatus();	
+		fail_getAddedTorrents();
+		fail_myFiles();
+		async.series([
+			fail_addTorrent,
+			fail_queueTorrents,
+			fail_removeAddedTorrent
+		])
+	});
+}
 
+
+function fail_addInvalidUrl(){
+		
+		function fail_addTorrent(){
+			var bitport = new Bitport();
+			//Invalid torrent
+			bitport.addTorrent();
+		}
+}
+
+
+
+/* Tests are outdated */
 
 function run_tests() {
     var testUrl = "http://torcache.net/torrent/BBA1876861A473B276522C06D00689A2886651BB.torrent?title=[kat.cr]a.song.of.ice.and.fire.book.5.a.dance.with.dragons"
@@ -160,7 +309,7 @@ function run_tests() {
             },
             function(err) {
                 if (err)
-                    console.log("Error in added a bunch of torrents")
+                    console.log("ERROR in added a bunch of torrents")
                 cb();
             }
         )
