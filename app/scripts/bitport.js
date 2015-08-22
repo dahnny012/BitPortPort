@@ -26,7 +26,6 @@ function assert(cond, msg, msgPassed) {
 
 function Bitport() {
     this.userToken = "";
-	this.addedTorrents = [];
 	this.dirty = false;
 	this.transfers = [];
 }
@@ -106,6 +105,7 @@ Bitport.prototype.torrentTableJSON = function(json) {
         if (!e.response.success){
 			torrent.status = e.response.errorMsg;
 			torrent.name = e.name
+			torrent.error = true;
 		}
 		table.push(torrent);
     })
@@ -122,6 +122,11 @@ Bitport.prototype.removeAddedTorrent = function(index) {
     var target = this.addedTorrents[index];
     var bitport = this;
 	var defer = $.Deferred();
+	if(target .error){
+		bitport.addedTorrents.splice(index, 1);
+		defer.resolve();
+		return defer.promise();
+	}
     $.ajax({
         type: "GET",
         url: target.remove,
@@ -130,8 +135,10 @@ Bitport.prototype.removeAddedTorrent = function(index) {
             request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
         }})
         .done(function(data, status, xhr) {
-            if (data.success)
+            if (data.success){
                 bitport.addedTorrents.splice(index, 1);
+				defer.resolve();
+			}
 			else
 				defer.reject("ERROR Torrent was not removed");
 		})
@@ -174,10 +181,12 @@ Bitport.prototype.getTorrentStatus = function() {
 };
 
 Bitport.prototype.queueTorrents = function() {
-    this.addedTorrents = [];
 	var defer = new $.Deferred();
+	var bitport = this;
     request(this.queueUrl).then(function(data){
+		
 		if($(data).find("#main-menu").length <= 0){
+			 bitport.addedTorrents = [];
 			 defer.resolve()
 		}else{
 			defer.reject("ERROR not logged in");

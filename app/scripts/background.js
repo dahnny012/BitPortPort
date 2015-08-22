@@ -1,23 +1,22 @@
 (function() {
     var bitport = new Bitport();
     var loginManager = new LoginManager();
-
+	
     chrome.runtime.onMessage.addListener(
         function(request, sender, sendResponse) {
             switch (request.msg) {
                 case "loggedIn":
                     if (loginManager.login()) {
                         bitport.isLoggedIn().then(function(data) {
-                            if (data) {
-                                sendResponse({
-                                    loggedIn: true
-                                })
-                            } else {
-                                sendResponse({
-                                    loggedIn: false
-                                })
-                            }
-                        })
+							if(!data)
+								loginManager.reset();
+							else
+								loginManager.start();							
+							sendResponse({loggedIn:data})
+                        }).fail(function(msg){
+							loginManager.reset();
+							sendResponse({error:msg});
+						})
                     } else {
                         sendResponse({
                             loggedIn: true
@@ -27,12 +26,16 @@
                 case "queue":
                     bitport.queueTorrents().then(function() {
                         sendResponse();
-                    })
+                    }).fail(function(msg){
+						sendResponse({error:msg});
+					})
                     break;
                 case "torrentStatus":
                     bitport.getTorrentStatus().then(function() {
                         sendResponse(bitport.transfers);
-                    })
+                    }).fail(function(msg){
+						sendResponse({error:msg});
+					})
                     break;
                 case "addedTorrents":
                     // User Recent added something
@@ -40,14 +43,18 @@
                         bitport.addPromise.then(function() {
                             bitport.getAddedTorrentStatus().then(function() {
                                 sendResponse(bitport.addedTorrents);
-                            })
+                            }).fail(function(msg){
+								sendResponse({error:msg});
+							})
                         })
                     }
                     // Hard scrape
                     else if (!bitport.addedTorrents) {
                         bitport.getAddedTorrents().then(function() {
                             sendResponse(bitport.addedTorrents);
-                        })
+                        }).fail(function(msg){
+							sendResponse({error:msg})
+						})
                     } else {
                         // Not dirty
                         sendResponse(bitport.addedTorrents);
@@ -59,12 +66,16 @@
                 case "removeAdded":
                     bitport.removeAddedTorrent(request.index).then(function() {
                         sendResponse(bitport.addedTorrents);
-                    })
+                    }).fail(function(msg){
+						sendResponse({error:msg});
+					})
                     break;
                 case "myFiles":
                     bitport.myFiles().then(function(data) {
                         sendResponse(data);
-                    });
+                    }).fail(function(data){
+						sendResponse({error:data});
+					})
                     break;
                 default:
                     return true;
@@ -79,7 +90,12 @@ function LoginManager() {
     var minute = 60 * ms;
     var checkInterval = 5 * minute;
     var currentTime;
+	var status = 0;
     this.login = function() {
+		if(status == 0){
+			status = 1;
+			return true;
+		}
         var checkTime = new Date();
         if (currentTime) {
             var difference = checkTime.valueOf() - currentTime;
@@ -88,5 +104,14 @@ function LoginManager() {
             currentTime = checkTime.valueOf();
             return true;
         }
-    }
+	}
+	
+	this.reset = function(){
+		status = 0;
+		currentTime = undefined;
+	}
+	
+	this.start = function(){
+		currentTime = new Date();
+	}
 }

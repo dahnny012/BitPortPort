@@ -68,7 +68,8 @@ app.controller("LoginController", ["chrome", "$scope", "$rootScope", "$q",
                 if (res.loggedIn) {
                     $rootScope.$broadcast("loggedIn");
                 } else {
-                    $rootScope.statusMessage = "You are not logged in.";
+					$rootScope.statusMessage = 
+						res.error ? res.error : "You are not logged in.";
                 }
                 $scope.loggedIn = res.loggedIn;
             })
@@ -92,11 +93,11 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
 
         function init() {
             chrome.addedTorrents().then(function(data) {
+				console.log(data);
                 $scope.addedTorrents = data;
             });
             chrome.torrentStatus().then(function(data) {
                 $scope.waiting = data.waitingTransfers;
-
                 $scope.active = data.activeTransfers;
             });
 

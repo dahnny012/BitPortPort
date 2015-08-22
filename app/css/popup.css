@@ -88,3 +88,20 @@ th{
 	padding-left:10%;
 	font-size:14px;
 }
+
+.class{
+	color:red;
+}
+
+table {
+    width: 100%;
+    table-layout: fixed;
+	border-collapse: separate;
+    border-spacing: 10px;
+}
+
+td,th{
+	word-wrap: break-word;
+	width:40%;
+    max-width:40%;
+}

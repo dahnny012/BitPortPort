@@ -33,9 +33,13 @@
 						<th>Name</th>
 						<th>Status</th>
 					</tr>
-					<tr ng-repeat="torrent in active">
+					<tr ng-show="!active.error" ng-repeat="torrent in active">
 						<td>{{torrent.name}}</td>
 						<td>{{torrent.downloadedPart * 100}}%</td>
+					</tr>
+					
+					<tr ng-show="active.error">
+						<td>{{active.error}}</td>
 					</tr>
 				</table>
 			</div>
@@ -44,10 +48,12 @@
 				<table>
 					<tr>
 						<th>Name</th>
+						<th>Status</th>
 						<th>Remove</th>
 					</tr>
 					<tr ng-repeat="torrent in addedTorrents">
 						<td>{{torrent.name}}</td>
+						<td>{{torrent.status || "Ready"}}</td>
 						<td>
 							<button class="button small-button" ng-click="Main.remove($index)">x</button>
 						</td>
