@@ -126,7 +126,12 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
 
         this.remove = function(index) {
             chrome.removeAdded(index).then(function(data) {
-                $scope.addedTorrents = data;
+				if(data.error){
+                $scope.addedTorrents[index].error = true;
+				$scope.addedTorrents[index].status = data.error;
+				}else{
+					$scope.addedTorrents = data;
+				}
             })
         }
 
