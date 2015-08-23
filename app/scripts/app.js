@@ -93,15 +93,18 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
 
         function init() {
             chrome.addedTorrents().then(function(data) {
-				console.log(data);
                 $scope.addedTorrents = data;
+				$scope.addedCount = data.length;
             });
             chrome.torrentStatus().then(function(data) {
+				$scope.waitingCount = data.waitingTransfers.length;
                 $scope.waiting = data.waitingTransfers;
+				$scope.activeCount = data.activeTransfers.length;
                 $scope.active = data.activeTransfers;
             });
 
             chrome.myFiles().then(function(data) {
+				$scope.downloadedCount = data.length;
                 $scope.finished = data;
             })
         }

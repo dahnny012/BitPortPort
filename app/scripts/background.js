@@ -1,7 +1,7 @@
 (function () {
     var bitport = new Bitport();
     var loginManager = new LoginManager();
-	var bgGetTorrentStatus;
+	var 
     chrome.runtime.onMessage.addListener(
         function (request, sender, sendResponse) {
             switch (request.msg) {
