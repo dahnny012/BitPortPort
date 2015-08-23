@@ -90,24 +90,51 @@ app.controller("LoginController", ["chrome", "$scope", "$rootScope", "$q",
 
 app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
     function($scope, $http, chrome, $rootScope) {
-
+		$scope.tab ={ 
+			"active":{
+				count:0,
+				loading:true
+			},
+			"added":{
+				count:0,
+				loading:true
+			},
+			"waiting":{
+				count:0,
+				loading:true
+			},
+			"finished":{
+				count:0,
+				loading:true
+			}};
         function init() {
             chrome.addedTorrents().then(function(data) {
                 $scope.addedTorrents = data;
-				$scope.addedCount = data.length;
+				updateTab("added",data.length);
             });
             chrome.torrentStatus().then(function(data) {
-				$scope.waitingCount = data.waitingTransfers.length;
+				updateTab("waiting",data.waitingTransfers.length);
                 $scope.waiting = data.waitingTransfers;
-				$scope.activeCount = data.activeTransfers.length;
+				updateTab("active",data.activeTransfers.length);
                 $scope.active = data.activeTransfers;
             });
 
             chrome.myFiles().then(function(data) {
-				$scope.downloadedCount = data.length;
+				updateTab("finished",data.length)
                 $scope.finished = data;
             })
         }
+		function setLoading(){
+			$scope.tab["active"].loading = true;
+			$scope.tab["added"].loading = true;
+			$scope.tab["waiting"].loading = true;
+			$scope.tab["finished"].loading = true;
+		}
+		
+		function updateTab(key,count){
+			$scope.tab[key].count = count;
+			$scope.tab[key].loading=false;
+		}
 
         this.queue = function() {
             chrome.queue().then(function() {
