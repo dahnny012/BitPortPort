@@ -3,7 +3,7 @@
 var app = angular.module("App", []);
 
 
-app.service("chrome", function($q) {
+app.service("chrome", function($q,$timeout) {
 
     function sendMsg(config) {
         var defer = $q.defer();
@@ -48,7 +48,13 @@ app.service("chrome", function($q) {
                 msg: "removeAdded",
                 index: index
             });
-        }
+        },
+		deleteTransfer:function(index){
+			return sendMsg({
+                msg: "deleteTransfer",
+                index: index
+            });
+		}
 
     };
 });
@@ -68,7 +74,8 @@ app.controller("LoginController", ["chrome", "$scope", "$rootScope", "$q",
                 if (res.loggedIn) {
                     $rootScope.$broadcast("loggedIn");
                 } else {
-                    $rootScope.statusMessage = "You are not logged in.";
+					$rootScope.statusMessage = 
+						res.error ? res.error : "You are not logged in.";
                 }
                 $scope.loggedIn = res.loggedIn;
             })
@@ -81,29 +88,75 @@ app.controller("LoginController", ["chrome", "$scope", "$rootScope", "$q",
     }
 ]);
 
-
-
-
-
-
-
 app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
     function($scope, $http, chrome, $rootScope) {
+		$scope.tab ={ 
+			"active":{
+				count:0,
+				loading:true
+			},
+			"added":{
+				count:0,
+				loading:true
+			},
+			"waiting":{
+				count:0,
+				loading:true
+			},
+			"finished":{
+				count:0,
+				loading:true
+			}};
+			
 
+		
         function init() {
             chrome.addedTorrents().then(function(data) {
-                $scope.addedTorrents = data;
+                updateAdded(data);
             });
             chrome.torrentStatus().then(function(data) {
-                $scope.waiting = data.waitingTransfers;
-
-                $scope.active = data.activeTransfers;
+				updateTransfers(data);
+				if(data.activeTransfers.length > 0){
+					pollActiveTorrents();
+				}
             });
 
             chrome.myFiles().then(function(data) {
+				updateTab("finished",data.length)
                 $scope.finished = data;
             })
         }
+		function setLoading(){
+			$scope.tab["active"].loading = true;
+			$scope.tab["added"].loading = true;
+			$scope.tab["waiting"].loading = true;
+			$scope.tab["finished"].loading = true;
+		}
+		
+		function updateTab(key,count){
+			$scope.tab[key].count = count;
+			$scope.tab[key].loading=false;
+		}
+		
+		function pollActiveTorrents() {
+			chrome.torrentStatus().then(function (data) {
+				updateTransfers(data);
+				if (data.activeTransfers.length) {
+					pollActiveTorrents();
+				}
+            });
+		}
+		
+		function updateTransfers(data){
+			updateTab("waiting",data.waitingTransfers.length);
+            $scope.waiting = data.waitingTransfers;
+			updateTab("active",data.activeTransfers.length);
+            $scope.active = data.activeTransfers;
+		}
+		function updateAdded(data){
+			$scope.addedTorrents = data;
+			updateTab("added",data.length);
+		}
 
         this.queue = function() {
             chrome.queue().then(function() {
@@ -111,21 +164,24 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
             })
         };
 
-        this.query = function() {
-            chrome.queue(function(res) {
-                console.log(res);
-            });
-        };
-
-        this.torrents = function() {
-            chrome.torrents(function(res) {
-                console.log(res);
-            })
-        };
-
         this.remove = function(index) {
             chrome.removeAdded(index).then(function(data) {
-                $scope.addedTorrents = data;
+				if(data.error){
+                	$scope.addedTorrents[index].error = true;
+					$scope.addedTorrents[index].status = data.error;
+				}else{
+					updateAdded(data);
+				}
+            })
+        }
+		
+		this.remove = function(index) {
+            chrome.deleteTransfer(index).then(function(data) {
+				if(data.error){
+					updateTransfers(data);
+				}else{
+					
+				}				
             })
         }
 
@@ -141,3 +197,27 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
         })
     }
 ]);
+
+
+
+app.filter('toPercent', function() {
+  return function(input) {
+    input = (input * 100).toFixed(2);
+	return input + "%";	
+  };
+})
+
+app.filter('default', function() {
+  return function(input) {
+    var regex = /[^_A-Z]+/g
+	var matches = input.match(regex);
+	return  matches.map(function(e){
+		var firstLetter = e[0].toUpperCase();
+		var str = firstLetter;
+		if(e.length > 1){
+			str+= e.substr(1,e.length-1);
+		}
+		return str;
+	}).join(" ");
+  };
+})

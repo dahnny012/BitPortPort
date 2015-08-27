@@ -10,6 +10,28 @@ function request(config) {
     }
 }
 
+// Mutates combines src and a new source based on common keys
+function merge(src,newSrc,key){
+	if(!src)
+		src = [];
+	if(!newSrc){
+		return;
+	}
+	var arrKeys ={};
+	
+	src.forEach(function(e){
+		arrKeys[e[key]] = 1;
+	});
+	
+	newSrc.forEach(function(e){
+		if(!arrKeys[e[key]])
+			src.push(e);
+	});
+	
+	
+	return src;
+}
+
 function reject(msg){
 	return $.Deferred().reject(msg).promise();
 }
@@ -26,12 +48,16 @@ function assert(cond, msg, msgPassed) {
 
 function Bitport() {
     this.userToken = "";
-	this.addedTorrents = [];
 	this.dirty = false;
 	this.transfers = [];
+	this.addInProgress = 0;
 }
 Bitport.prototype.getRemoveUrl = function(token) {
     return "https://bitport.io/recapitulation?token=" + token + "&do=deleteTransfer"
+}
+
+Bitport.prototype.getDeleteUrl = function(token){
+	return "https://bitport.io/transfers?token=" + token +"&do=deleteTransfer";
 }
 
 Bitport.prototype.homeUrl = "https://bitport.io/";
@@ -57,21 +83,29 @@ Bitport.prototype.getAddedTorrentStatus = function(cb) {
 		go();
 	
 	function go(){
-		async.timesSeries(5,
+		var retries = bitport.addInProgress > 0 ?  bitport.addInProgress : 5;
+		async.timesSeries(retries,
 			function (n, next) {
 				request({
 					url: bitport.statusUrl + bitport.userToken
 				}).then(function (data, status) {
 					var data = JSON.parse(data);
+					console.log(data);
 					if (data.length > 0) {
+						bitport.addInProgress -= data.length;
 						if (bitport.addedTorrents && bitport.addedTorrents.length > 0) {
-							bitport.addedTorrents = bitport.torrentTableJSON(data).concat(bitport.addedTorrents);
+							var newTable = bitport.torrentTableJSON(data).concat(bitport.addedTorrents);
+							merge(bitport.addedTorrents,newTable,"token");
 						} else {
 							bitport.addedTorrents = bitport.torrentTableJSON(data);
 						}
-						next("Updated");
-						bitport.dirty = false;
-						defer.resolve();
+						if(bitport.addInProgress <= 0){
+							bitport.dirty = false;
+							defer.resolve();
+							next("Updated");
+						}else{
+							next();
+						}
 					} else {
 						next();
 					}
@@ -100,12 +134,14 @@ Bitport.prototype.torrentTableJSON = function(json) {
     json.forEach(function(e) {
         var megabyte = 1024000;
 		var torrent = {};
+		torrent.token = e.transferToken;
 		torrent.remove = bitport.getRemoveUrl(e.transferToken);
 		torrent.name = e.response.name;
 		torrent.size =  e.response.size ? e.response.size / megabyte : 0;
         if (!e.response.success){
 			torrent.status = e.response.errorMsg;
 			torrent.name = e.name
+			torrent.error = true;
 		}
 		table.push(torrent);
     })
@@ -116,12 +152,17 @@ Bitport.prototype.torrentTableJSON = function(json) {
 
 
 Bitport.prototype.removeAddedTorrent = function(index) {
-    if (!this.addedTorrents || index > this.addedTorrents.length) {
+	var bitport = this;
+    if (!bitport.addedTorrents || index > bitport.addedTorrents.length) {
         return reject("ERROR no entries to delete")
     }
-    var target = this.addedTorrents[index];
-    var bitport = this;
+    var target = bitport.addedTorrents[index];
 	var defer = $.Deferred();
+	if(target .error){
+		bitport.addedTorrents.splice(index, 1);
+		defer.resolve();
+		return defer.promise();
+	}
     $.ajax({
         type: "GET",
         url: target.remove,
@@ -130,10 +171,12 @@ Bitport.prototype.removeAddedTorrent = function(index) {
             request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
         }})
         .done(function(data, status, xhr) {
-            if (data.success)
+            if (data.success != undefined){
                 bitport.addedTorrents.splice(index, 1);
-			else
-				defer.reject("ERROR Torrent was not removed");
+				defer.resolve();
+			}else{
+				defer.reject("Error could not remove torrent");
+			}
 		})
 		.fail(function(){
 				defer.reject("Could not connect to bitport.io");
@@ -142,6 +185,28 @@ Bitport.prototype.removeAddedTorrent = function(index) {
 	return defer.promise();
 }
 
+
+Bitport.prototype.deleteTransfer = function(index) {
+	var bitport = this;
+    if (!bitport.transfers.activeTransfers || index > bitport.transfers.activeTransfers.length) {
+        return reject("ERROR no entries to delete")
+    }
+	var target = bitport.transfers.activeTransfers[index];
+	var defer = $.Deferred();
+	var removeUrl = bitport.getDeleteUrl(target.token);
+    $.ajax({
+        type: "GET",
+        url: removeUrl})
+        .done(function(data, status, xhr) {
+           bitport.transfers.activeTransfers.splice(index, 1);
+		   defer.resolve();
+		})
+		.fail(function(){
+				defer.reject("Could not connect to bitport.io");
+		})
+	
+	return defer.promise();
+}
 Bitport.prototype.isLoggedIn = function() {
 	var bitport = this;
 	var defer = $.Deferred();
@@ -174,10 +239,12 @@ Bitport.prototype.getTorrentStatus = function() {
 };
 
 Bitport.prototype.queueTorrents = function() {
-    this.addedTorrents = [];
 	var defer = new $.Deferred();
+	var bitport = this;
     request(this.queueUrl).then(function(data){
+		
 		if($(data).find("#main-menu").length <= 0){
+			 bitport.addedTorrents = [];
 			 defer.resolve()
 		}else{
 			defer.reject("ERROR not logged in");
@@ -216,8 +283,10 @@ Bitport.prototype.addTorrent = function(url, cb) {
                     if (cb) {
                         cb();
                     }
-                    if (bitport.addPromise)
+                    if (bitport.addPromise){
+						bitport.addInProgress++;
                         bitport.addPromise.resolve();
+					}
             }).fail(function(data,status,xhr){
                     cb("ERROR in adding torrent");
 					bitport.userToken = "";
@@ -259,30 +328,25 @@ Bitport.prototype.getToken = function(cb) {
 
 Bitport.prototype.torrentTable = function(html) {
     var table = [];
+	var bitport = this;
     var children = $(html).find("#queue-items").find("tr").each(function(i, e) {
         var rows = $(e).find("td");
         var torrent = {};
         var prop = 0;
+		torrent.token = $(e).attr("data-token");
+		torrent.status = $(e).attr("status");
+		torrent.remove = bitport.getRemoveUrl(torrent.token);
         rows.each(function(i, node) {
             switch (node.className) {
                 case "td-name":
                     torrent.name = node.innerText.trim();
+					prop++;
                     break;
                 case "td-weak":
                     torrent.size = node.innerText.trim();
-                    prop++;
-                    break;
-                case "td-status":
-                    torrent.status = node.innerText.trim();
-                    prop++;
                     break;
                 case "align-right td-folder":
                     torrent.dir = node.innerText.trim();
-                    prop++;
-                    break;
-                case "td-remove":
-                    torrent.remove = "https://bitport.io/" + $(node).find("a").attr("href");
-                    prop++;
                     break;
             }
         });
@@ -301,8 +365,9 @@ Bitport.prototype.getAddedTorrents = function () {
 	})
         .then(function (data, status, xhr) {
             var torrents = _this.torrentTable(data);
-            _this.addedTorrents = torrents;
+            _this.addedTorrents = merge(_this.addedTorrents,torrents,"token");
             _this.dirty = false;
+			defer.resolve();
             return true;
 		})
 		.fail(function(){
@@ -312,6 +377,10 @@ Bitport.prototype.getAddedTorrents = function () {
 	return defer.promise();
 };
 
+
+Bitport.prototype.clearAdded = function(){
+	this.addedTorrents = undefined;
+}
 
 Bitport.prototype.myFiles = function() {
     var defer = $.Deferred();

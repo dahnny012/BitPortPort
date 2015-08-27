@@ -87,4 +87,28 @@ th{
 .navItem{
 	padding-left:10%;
 	font-size:14px;
+
+}
+
+
+.loading{
+		background-image: url('../images/loading.gif');
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+.class{
+	color:red;
+}
+
+table {
+    width: 100%;
+    table-layout: fixed;
+	border-collapse: separate;
+    border-spacing: 10px;
+}
+
+td,th{
+	word-wrap: break-word;
+	width:40%;
+    max-width:40%;
 }
