@@ -84,7 +84,9 @@
 					}
                     break;
                 case "addTorrent":
-                    bitport.addTorrent(request.file);
+                    bitport.addTorrent(request.file,function(){
+						sendResponse({msg:"ok"});
+					});
                     break;
                 case "removeAdded":
                     bitport.removeAddedTorrent(request.index).then(function () {
