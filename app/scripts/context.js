@@ -7,24 +7,13 @@ var Context = function() {
             chrome.runtime.sendMessage({
                 msg: "addTorrent",
                 file: info.linkUrl
-            },function(data){
-				var note = chrome.notifications.create("id", opt);
-				setTimeout(function(){
-					chrome.notifications.clear("id");
-				},2000);
-			});
+            });
         }
     });
 };
-
-var opt = {
-  type: "basic",
-  title: "Bitport Port Action",
-  message: "Torrent Added",
-  iconUrl: "images/icon-48.png"
-}
-
-
-
 Context();
+
+
+
+
 

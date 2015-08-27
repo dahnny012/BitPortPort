@@ -84,9 +84,7 @@
 					}
                     break;
                 case "addTorrent":
-                    bitport.addTorrent(request.file,function(){
-						sendResponse({msg:"ok"});
-					});
+                    bitport.addTorrent(request.file,Notify);
                     break;
                 case "removeAdded":
                     bitport.removeAddedTorrent(request.index).then(function () {
@@ -147,3 +145,16 @@ function LoginManager() {
 		currentTime = new Date();
 	}
 }
+
+var Notify = function () {
+		chrome.notifications.create("id", {
+			type: "basic",
+			title: "Bitport Port Action",
+			message: "Torrent Added",
+			iconUrl: "images/icon-48.png"
+		});
+	};
+		
+
+
+		
