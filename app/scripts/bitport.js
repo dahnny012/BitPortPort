@@ -56,6 +56,10 @@ Bitport.prototype.getRemoveUrl = function(token) {
     return "https://bitport.io/recapitulation?token=" + token + "&do=deleteTransfer"
 }
 
+Bitport.prototype.getDeleteUrl = function(token){
+	return "https://bitport.io/transfers?token=" + token +"&do=deleteTransfer";
+}
+
 Bitport.prototype.homeUrl = "https://bitport.io/";
 Bitport.prototype.addUrl = "https://fes.bitport.io/torrentInfoService/v1/torrent/add/";
 Bitport.prototype.queueUrl = "https://bitport.io/to-queue";
@@ -148,11 +152,11 @@ Bitport.prototype.torrentTableJSON = function(json) {
 
 
 Bitport.prototype.removeAddedTorrent = function(index) {
-    if (!this.addedTorrents || index > this.addedTorrents.length) {
+	var bitport = this;
+    if (!bitport.addedTorrents || index > bitport.addedTorrents.length) {
         return reject("ERROR no entries to delete")
     }
-    var target = this.addedTorrents[index];
-    var bitport = this;
+    var target = bitport.addedTorrents[index];
 	var defer = $.Deferred();
 	if(target .error){
 		bitport.addedTorrents.splice(index, 1);
@@ -181,6 +185,28 @@ Bitport.prototype.removeAddedTorrent = function(index) {
 	return defer.promise();
 }
 
+
+Bitport.prototype.deleteTransfer = function(index) {
+	var bitport = this;
+    if (!bitport.transfers.activeTransfers || index > bitport.transfers.activeTransfers.length) {
+        return reject("ERROR no entries to delete")
+    }
+	var target = bitport.transfers.activeTransfers[index];
+	var defer = $.Deferred();
+	var removeUrl = bitport.getDeleteUrl(target.token);
+    $.ajax({
+        type: "GET",
+        url: removeUrl})
+        .done(function(data, status, xhr) {
+           bitport.transfers.activeTransfers.splice(index, 1);
+		   defer.resolve();
+		})
+		.fail(function(){
+				defer.reject("Could not connect to bitport.io");
+		})
+	
+	return defer.promise();
+}
 Bitport.prototype.isLoggedIn = function() {
 	var bitport = this;
 	var defer = $.Deferred();

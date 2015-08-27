@@ -3,7 +3,7 @@
 var app = angular.module("App", []);
 
 
-app.service("chrome", function($q) {
+app.service("chrome", function($q,$timeout) {
 
     function sendMsg(config) {
         var defer = $q.defer();
@@ -48,7 +48,13 @@ app.service("chrome", function($q) {
                 msg: "removeAdded",
                 index: index
             });
-        }
+        },
+		deleteTransfer:function(index){
+			return sendMsg({
+                msg: "deleteTransfer",
+                index: index
+            });
+		}
 
     };
 });
@@ -82,12 +88,6 @@ app.controller("LoginController", ["chrome", "$scope", "$rootScope", "$q",
     }
 ]);
 
-
-
-
-
-
-
 app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
     function($scope, $http, chrome, $rootScope) {
 		$scope.tab ={ 
@@ -107,16 +107,18 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
 				count:0,
 				loading:true
 			}};
+			
+
+		
         function init() {
             chrome.addedTorrents().then(function(data) {
-                $scope.addedTorrents = data;
-				updateTab("added",data.length);
+                updateAdded(data);
             });
             chrome.torrentStatus().then(function(data) {
-				updateTab("waiting",data.waitingTransfers.length);
-                $scope.waiting = data.waitingTransfers;
-				updateTab("active",data.activeTransfers.length);
-                $scope.active = data.activeTransfers;
+				updateTransfers(data);
+				if(data.activeTransfers.length > 0){
+					pollActiveTorrents();
+				}
             });
 
             chrome.myFiles().then(function(data) {
@@ -135,6 +137,26 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
 			$scope.tab[key].count = count;
 			$scope.tab[key].loading=false;
 		}
+		
+		function pollActiveTorrents() {
+			chrome.torrentStatus().then(function (data) {
+				updateTransfers(data);
+				if (data.activeTransfers.length) {
+					pollActiveTorrents();
+				}
+            });
+		}
+		
+		function updateTransfers(data){
+			updateTab("waiting",data.waitingTransfers.length);
+            $scope.waiting = data.waitingTransfers;
+			updateTab("active",data.activeTransfers.length);
+            $scope.active = data.activeTransfers;
+		}
+		function updateAdded(data){
+			$scope.addedTorrents = data;
+			updateTab("added",data.length);
+		}
 
         this.queue = function() {
             chrome.queue().then(function() {
@@ -142,26 +164,24 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
             })
         };
 
-        this.query = function() {
-            chrome.queue(function(res) {
-                console.log(res);
-            });
-        };
-
-        this.torrents = function() {
-            chrome.torrents(function(res) {
-                console.log(res);
-            })
-        };
-
         this.remove = function(index) {
             chrome.removeAdded(index).then(function(data) {
 				if(data.error){
-                $scope.addedTorrents[index].error = true;
-				$scope.addedTorrents[index].status = data.error;
+                	$scope.addedTorrents[index].error = true;
+					$scope.addedTorrents[index].status = data.error;
 				}else{
-					$scope.addedTorrents = data;
+					updateAdded(data);
 				}
+            })
+        }
+		
+		this.remove = function(index) {
+            chrome.deleteTransfer(index).then(function(data) {
+				if(data.error){
+					updateTransfers(data);
+				}else{
+					
+				}				
             })
         }
 
@@ -177,3 +197,27 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
         })
     }
 ]);
+
+
+
+app.filter('toPercent', function() {
+  return function(input) {
+    input = (input * 100).toFixed(2);
+	return input + "%";	
+  };
+})
+
+app.filter('default', function() {
+  return function(input) {
+    var regex = /[^_A-Z]+/g
+	var matches = input.match(regex);
+	return  matches.map(function(e){
+		var firstLetter = e[0].toUpperCase();
+		var str = firstLetter;
+		if(e.length > 1){
+			str+= e.substr(1,e.length-1);
+		}
+		return str;
+	}).join(" ");
+  };
+})

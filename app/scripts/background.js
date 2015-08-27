@@ -93,6 +93,13 @@
 						sendResponse({ error: msg });
 					})
                     break;
+				 case "deleteTransfer":
+                    bitport.deleteTransfer(request.index).then(function () {
+                        sendResponse(bitport.transfers);
+                    }).fail(function (msg) {
+						sendResponse({ error: msg });
+					})
+                    break;
                 case "myFiles":
                     bitport.myFiles().then(function (data) {
                         sendResponse(data);

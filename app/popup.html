@@ -3,12 +3,14 @@
 
 <head>
 	<meta charset="utf-8">
+	<link href="libraries/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
 	<link href="css/popup.css" rel="stylesheet">
 	<script src="libraries/angular.min.js">
 
 	</script>
 	<script src="libraries/jquery.js"></script>
 	<script src="scripts/app.js"></script>
+
 </head>
 
 <body ng-app="App">
@@ -31,11 +33,20 @@
 				<table>
 					<tr>
 						<th>Name</th>
+						<th>Size</th>
+						<th>Time Remaining</th>
 						<th>Status</th>
+						<th>Actions</th>
 					</tr>
 					<tr ng-show="!active.error" ng-repeat="torrent in active">
 						<td>{{torrent.name}}</td>
-						<td>{{torrent.downloadedPart * 100}}%</td>
+						<td>{{torrent.size}}</td>
+						<td>{{torrent.remainingTime}} ({{torrent.downloadSpeed}})</td>
+						<td> {{torrent.status | default}} <br>
+							{{torrent.downloadedPart | toPercent}}
+							<br>
+							({{torrent.completedLength}})</td>
+						<td><button ng-click="Main.deleteTransfer($index)" class="fa fa-trash-o fa-lg"></td>
 					</tr>
 					
 					<tr ng-show="active.error">
