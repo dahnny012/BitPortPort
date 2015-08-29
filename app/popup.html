@@ -22,10 +22,10 @@
 	</div>{{mainMenu}}
 	<div ng-show="mainMenu" ng-controller="MainMenuController as Main" style="padding:10px">
 		<div class="navList">
-			<span class="nav" ng-class="{loading: tab['active'].loading}" ng-click='currentTab="active"'> <span class="navItem"> Active{{tab['active'].loading ? "":'('+tab['active'].count+')'}} </span> </span>
-			<span class="nav" ng-class="{loading: tab['added'].loading}" ng-click='currentTab="added"'> <span class="navItem"> Added{{tab['added'].loading ? "":'('+tab['added'].count+')'}}</span></span>
-			<span class="nav" ng-class="{loading: tab['waiting'].loading}" ng-click='currentTab="waiting"'><span class="navItem"> Waiting{{tab['waiting'].loading ? "":'('+tab['waiting'].count+')'}} </span> </span>
-			<span class="nav" ng-class="{loading: tab['finished'].loading}" ng-click='currentTab="downloaded"'> <span class="navItem"> Finished{{tab['finished'].loading ? "":'('+tab['finished'].count+')'}} </span> </span>
+			<span class="nav" ng-class="{loading: tab['active'].loading}" ng-click='Main.setActive("active")'> <span class="navItem"> Active{{tab['active'].loading ? "":'('+tab['active'].count+')'}} </span> </span>
+			<span class="nav" ng-class="{loading: tab['added'].loading}" ng-click='Main.setActive("added")'> <span class="navItem"> Added{{tab['added'].loading ? "":'('+tab['added'].count+')'}}</span></span>
+			<span class="nav" ng-class="{loading: tab['waiting'].loading}" ng-click='Main.setActive("waiting")'><span class="navItem"> Waiting{{tab['waiting'].loading ? "":'('+tab['waiting'].count+')'}} </span> </span>
+			<span class="nav" ng-class="{loading: tab['finished'].loading}" ng-click='Main.setActive("finished")'> <span class="navItem"> Finished{{tab['finished'].loading ? "":'('+tab['finished'].count+')'}} </span> </span>
 		</div>
 		<div class="tabs" ng-switch="currentTab" ng-init='currentTab="active"'>
 			<div ng-switch-when="active" class="tableWrapper">
@@ -83,8 +83,8 @@
 					</tr>
 				</table>
 			</div>
-			<div ng-switch-when="downloaded" class="tableWrapper">
-				<div class="header">Downloaded</div>
+			<div ng-switch-when="finished" class="tableWrapper">
+				<div class="header">Finished</div>
 				<table>
 					<tr>
 						<th>Name</th>

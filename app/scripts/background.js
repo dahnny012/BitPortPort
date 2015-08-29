@@ -1,6 +1,7 @@
 (function () {
     var bitport = new Bitport();
     var loginManager = new LoginManager();
+	var bgDef;
     chrome.runtime.onMessage.addListener(
         function (request, sender, sendResponse) {
             switch (request.msg) {
@@ -44,7 +45,15 @@
 					var defers = [];
 					var ref;
 					var ref2;
-					
+					// Background is in process
+					if(bgDef){
+						bgDef.then(function(data){
+							sendResponse(bitport.addedTorrents);
+						}).fail(function(msg){
+							sendResponse({ error: msg.error })
+						})
+						break;
+					}
 					// User Recent added something
                     if (bitport.dirty) {
 						ref2 = $.Deferred();
@@ -84,7 +93,15 @@
 					}
                     break;
                 case "addTorrent":
-                    bitport.addTorrent(request.file);
+                    bitport.addTorrent(request.file, Notify);
+					bgDef = $.Deferred();
+					bitport.addPromise.then(function () {
+						bitport.getAddedTorrentStatus().then(function () {
+							bgDef.resolve(bitport.addedTorrents);
+						}).fail(function (msg) {
+							bgDef.reject({ error: msg })
+						})
+                    })
                     break;
                 case "removeAdded":
                     bitport.removeAddedTorrent(request.index).then(function () {
@@ -145,3 +162,21 @@ function LoginManager() {
 		currentTime = new Date();
 	}
 }
+
+var Notify = function () {
+	var rando = Math.random().toString();
+		chrome.notifications.create(rando, {
+			type: "basic",
+			title: "Bitport Port Action",
+			message: "Torrent Added",
+			iconUrl: "images/icon-48.png"
+		});
+		
+		setTimeout(function(){
+			chrome.notifications.clear(rando)
+		},1000)
+	};
+		
+
+
+		

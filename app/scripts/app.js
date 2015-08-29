@@ -111,34 +111,54 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
 
 		
         function init() {
-            chrome.addedTorrents().then(function(data) {
-                updateAdded(data);
-            });
-            chrome.torrentStatus().then(function(data) {
-				updateTransfers(data);
-				if(data.activeTransfers.length > 0){
-					pollActiveTorrents();
-				}
-            });
-
-            chrome.myFiles().then(function(data) {
-				updateTab("finished",data.length)
-                $scope.finished = data;
-            })
+            refresh("active")
+			refresh("added");
+			refresh("finished");
         }
-		function setLoading(){
+		
+		function refresh(key){
+			setLoading(key);
+			switch(key){
+				case "active":
+				case "waiting":
+				 chrome.torrentStatus().then(function(data) {
+					updateTransfers(data);
+					if(data.activeTransfers.length > 0){
+						pollActiveTorrents();
+					}
+				});
+				break;
+				case "added":
+				chrome.addedTorrents().then(function(data) {
+					updateAdded(data);
+				});
+				break;
+				case "finished":
+				chrome.myFiles().then(function(data) {
+					updateTab("finished",data.length)
+					$scope.finished = data;
+				})
+				break;
+			}
+		}
+		function setLoadingAll(){
 			$scope.tab["active"].loading = true;
 			$scope.tab["added"].loading = true;
 			$scope.tab["waiting"].loading = true;
 			$scope.tab["finished"].loading = true;
 		}
 		
+		function setLoading(key){
+			$scope.tab[key].loading = true;
+		}
+		
 		function updateTab(key,count){
 			$scope.tab[key].count = count;
-			$scope.tab[key].loading=false;
+			$scope.tab[key].loading = false;
 		}
 		
 		function pollActiveTorrents() {
+			setLoading("active");
 			chrome.torrentStatus().then(function (data) {
 				updateTransfers(data);
 				if (data.activeTransfers.length) {
@@ -157,14 +177,26 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
 			$scope.addedTorrents = data;
 			updateTab("added",data.length);
 		}
+		
+		/* 
+			Scoped Controller Functions
+		*/
 
+		this.setActive = function(key){
+			$scope.currentTab = key;
+			refresh(key);
+		}
+		
+		
         this.queue = function() {
+			setLoadingAll();
             chrome.queue().then(function() {
                 init();
             })
         };
 
         this.remove = function(index) {
+			setLoading("added");
             chrome.removeAdded(index).then(function(data) {
 				if(data.error){
                 	$scope.addedTorrents[index].error = true;
@@ -175,12 +207,14 @@ app.controller("MainMenuController", ["$scope", "$http", "chrome", "$rootScope",
             })
         }
 		
-		this.remove = function(index) {
+		this.deleteTransfer = function(index) {
+			setLoading("added");
             chrome.deleteTransfer(index).then(function(data) {
 				if(data.error){
+					console.log("ERRRORR IN UPDATING TRANSFERS")
 					updateTransfers(data);
 				}else{
-					
+					updateTransfers(data);
 				}				
             })
         }
